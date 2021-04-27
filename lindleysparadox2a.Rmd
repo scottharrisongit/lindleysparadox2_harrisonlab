@@ -1,0 +1,41 @@
+---
+title: "CHANGE THIS: EADS Report Template"
+output: html_document
+author: CHANGE THIS
+date: UPDATE THIS Month Day, Year
+---
+
+# Summary
+
+<!--- This can be extended into an Abstract and Introduction if so desired. --->
+
+<!--- Indicate question (one or two sentences on purpose) --->
+<!--- Indicate basic experimental design and methods (a few sentences) --->
+<!--- Primary findings (some exemplifying detail and quantitative report is recommended; several sentences) --->
+<!--- Interpretation (what can be discussed or concluded; what are the implications) --->
+
+# Methods
+
+<!--- Be sure to describe software, computational and mathematical models as are applicable to your study. --->
+
+Example of mathematical equation rendering:
+
+$${a}=\frac{b^c}{x_i+y_j}.$$
+
+# Results
+
+## Please use subsection headings like this.
+
+<!--- Results should provide both an adequate level of detail and summary of direct findings. --->.
+
+# Discussion
+
+<!--- Discussion may be optionally retitled as Discussion and Conclusion --->
+
+<!--- Interpret results in terms of what was expected and what was found. Be coherent with rest of manuscript. If there is an introduction section, how does this work build on those themes expounded upon in the introduction? Summarize the contributions of this work. You can also consider indicating new questions and future direction. --->
+
+# Supplemental
+
+```{r supplemental}
+sessionInfo()
+```
