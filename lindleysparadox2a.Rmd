@@ -18,23 +18,110 @@ We discuss how Lindley's paradox may reveal an essential consideration regarding
 
 # Methods
 
-<!--- Be sure to describe software, computational and mathematical models as are applicable to your study. --->
+Implementation of the analysis was done with R, based on MRAN snapshot 2021-04-20 (https://mran.microsoft.com/snapshot/2021-04-20/), and methods of the R stats package `binom.test` and `dbinom` (for frequentist statistical analysis) and `dbeta` (for Bayesian analysis).
 
-Example of mathematical equation rendering:
+Example values used for this analysis originate from https://jonathanweisberg.org/vip/chlindley.html (accessed April 27, 2021).
+Specifically, 200 different treatments are evaluated where 160 are not truly effective, and 40 are truly effective. Each study has n=100. There is a 65% chance of recovery from an effective treatment (i.e., on average, 65 of 100 patients recover based on the administered treatment).
 
-$${a}=\frac{b^c}{x_i+y_j}.$$
+For frequentist statistical analysis, statistical significance was set as *P*<0.05 (i.e., a 95% confidence interval)..
+
+With treatment variables of *k* successes and *j* failures, Equations 1 and 2 model how a Bayesian approach compares the marginal likelihood of a non 50/50 model to the flat prior 50/50 model.
+
+**Equation 1.**
+
+$$\int_0^1\!\binom{k+j}{k}\,p^k\,(1-p)^j$$
+
+**Equation 2.**
+
+$${p}=\frac{1}{k+j+1}.$$
+
 
 # Results
 
-## Please use subsection headings like this.
+## Frequentist Analysis
 
-<!--- Results should provide both an adequate level of detail and summary of direct findings. --->.
+```{r echo=FALSE, setsize}
+N <- 100
+```
+
+```{r echo=FALSE, confint65}
+k <- 65
+confint65vector <- binom.test(k, N, p=0.5)$conf.int[1:2]
+confint65 <- paste(sprintf("%.3f",confint65vector,collapse=" to "))
+```
+
+The 95% confidence interval for the truly effective studies (65% chance of recovery) is `r confint65`.
+
+```{r echo=FALSE, confint50}
+k <- 50
+confint50vector <- binom.test(k, N, p=0.5)$conf.int[1:2]
+confint50 <- paste(sprintf("%.3f",confint50vector,collapse=" to "))
+```
+
+The 95% confidence interval for the truly ineffective studies (50% chance of recovery) is `r confint50`.
+
+```{r echo=FALSE, misattributed_effective}
+misattributed_effective <-
+  sum(dbinom(1:round(confint50vector[2]*N),N,p=0.65))
+correctly_attributed_effective <- 1 - misattributed_effective
+misattributed_effective_perc <-
+  paste(sprintf("%.1f",misattributed_effective*100),"%",sep="")
+```
+
+```{r echo=FALSE, misattributed_ineffective}
+misattributed_ineffective <-
+  sum(dbinom(round(confint65vector[1]*N):100,N,p=0.50))
+correctly_attributed_ineffective <- 1 - misattributed_ineffective
+misattributed_ineffective_perc <-
+  paste(sprintf("%.1f",misattributed_ineffective*100),"%",sep="")
+```
+
+```{r echo=FALSE, attributed_effective}
+not_really_effective <- round(160*misattributed_ineffective)
+really_effective <- round(40*correctly_attributed_effective)
+```
+
+The percent of truly effective studies that would be misattributed as being ineffective would be the subset, by chance, which fit within the 95% confidence interval for being an ineffective study. This was calculated as 
+`r misattributed_effective_perc`. Contrastingly, the percent of truly ineffective studies that would be misattributed as being effective would be the subset, by chance, which fit within the 95% confidence interval for being an effective study. This was calculated as `r misattributed_ineffective_perc`. Overall, based on rounding, of the 160 ineffective and 40 effective treatments, there were `r not_really_effective` truly ineffective treatments which are at risk for being analyzed as effective (`r sprintf("%.1f%%",100*not_really_effective/160)`), whereas there are just `r really_effective` of the 40 truly effective treatments analyzed as being effective (`r paste(100*33/40,"%",sep="")`).
+
+## Bayesian Analysis
+
+A Bayesian Analysis can be used to compare how distributions from either the 160 truly ineffective and 40 truly effective set may compare to prior hypothesis of a 50/50 treatment effective.
+
+```{r echo=FALSE, bayesian}
+binom_effective_dist <- dbinom(1:100,N,p=0.65)
+binom_ineffective_dist <- dbinom(1:100,N,p=0.50)
+bayesian_odds_ineffective <- dbeta(0.5, 1:100 + 1, N - 1:100 + 1)
+bayesian_odds_effective <- dbeta(0.65, 1:100 + 1, N - 1:100 + 1)
+bayesian_odds_effective_greater1 <- bayesian_odds_effective > 1 
+bayesian_odds_ineffective_greater1 <- bayesian_odds_ineffective > 1
+
+# binom_effective_dist * bayesian_odds_effective_greater1
+# binom_ineffective_dist * bayesian_odds_ineffective_greater1
+
+bayesian_odds_effective_exclusively_greater1 <-
+  bayesian_odds_effective_greater1 & ! bayesian_odds_ineffective_greater1
+
+bayesian_odds_ineffective_exclusively_greater1 <-
+  bayesian_odds_ineffective_greater1 & ! bayesian_odds_effective_greater1
+
+bayesian_odds_effective_greater1_perc <- sprintf("%.1f%%",100* sum(binom_effective_dist * bayesian_odds_effective_greater1))
+
+bayesian_odds_effective_exclusively_greater1_perc <- sprintf("%.1f%%",100* sum(binom_effective_dist * bayesian_odds_effective_exclusively_greater1))
+
+bayesian_odds_ineffective_exclusively_greater1_perc <- sprintf("%.1f%%",100* sum(binom_ineffective_dist * bayesian_odds_ineffective_exclusively_greater1))
+
+bayesian_odds_ineffective_mutually_greater1_perc <- sprintf("%.1f%%",100-100* sum(binom_ineffective_dist * bayesian_odds_ineffective_exclusively_greater1))
+
+```
+
+For those truly effective studies, by Bayesian analysis (where beta > 1), `r bayesian_odds_effective_greater1_perc` of studies have data consistent with an expected positive treatment outcome of 65% of participants. For the subset of these truly effective studies that are exclusive to this model expectation for an expected treatment outcome of 65% of participants (where beta < 1 for an expected treatment outcome of 50%), there are `r bayesian_odds_effective_exclusively_greater1_perc` such studies.
+
+By contrast, for the subset of the truly ineffective studies that are exclusive to this model expectation for an expected treatment outcome of 50% of participants (where beta < 1 for an expected treatment outcome of 65%), there are `r bayesian_odds_ineffective_exclusively_greater1_perc` such studies. Therefore, `r bayesian_odds_ineffective_mutually_greater1_perc` of the truly ineffective studies may be construed as being effective due to Bayesian analysis.
 
 # Discussion
 
-<!--- Discussion may be optionally retitled as Discussion and Conclusion --->
-
-<!--- Interpret results in terms of what was expected and what was found. Be coherent with rest of manuscript. If there is an introduction section, how does this work build on those themes expounded upon in the introduction? Summarize the contributions of this work. You can also consider indicating new questions and future direction. --->
+Neither frequentist nor Bayesian analyses, as characterized within this study, remedy challenges that concern scenarios erroneously discounting effective treatments or incorrectly assessing ineffective treatments as being effective. It is also the case that levels of performance across these two analytical approaches are similar within the parameters of this analysis. Larger sample sizes within treatment trials may improve performance. For Bayesian analysis, it would be ideal to cross-compare odds ratios concerning prior hypotheses of 0.5 and 0.65 as opposed to a boolean contrast of how odds ratios may or may not be greater than one for either of these hypothetical priors. As a future area of study, we suggest that the limitations and strengths of these contrasting analytical methods may be jointly considered to more critically examine degree by which treatment data can be assessed for efficacy within a clinical settings.
 
 # Supplemental
 
