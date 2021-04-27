@@ -1,18 +1,20 @@
 ---
-title: "CHANGE THIS: EADS Report Template"
+title: "Relating Lindley's Paradox to the Exposure of Model Assumptions as a Catalyst for Implementation Science"
 output: html_document
-author: CHANGE THIS
-date: UPDATE THIS Month Day, Year
+author: Scott H. Harrison, PhD
+date: April 27, 2021
 ---
 
 # Summary
 
-<!--- This can be extended into an Abstract and Introduction if so desired. --->
-
 <!--- Indicate question (one or two sentences on purpose) --->
+Overlooked options for effective treatment may stem from lack of access and transparency regarding reproducible data analyses, reducing incorporation of viable treatments into standard medical practice. Some of this challenge may be critically addressed by further exposing underlying model assumptions in a data analysis to more explicitly take into account both the degree by which truly effective treatments are potentially discounted, and also the degree by which ineffective treatments are potentially evaluated as being effective.
 <!--- Indicate basic experimental design and methods (a few sentences) --->
+In this study, we present a reproducible evaluation for how treatment data can be alternatively analyzed via frequentist versus Bayesian perspectives. 
 <!--- Primary findings (some exemplifying detail and quantitative report is recommended; several sentences) --->
+The contrasting outcomes in analysis across these perspectives relates to Lindley's paradox.
 <!--- Interpretation (what can be discussed or concluded; what are the implications) --->
+We discuss how Lindley's paradox may reveal an essential consideration regarding analysis of public health data as concerns implementation science.
 
 # Methods
 
